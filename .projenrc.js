@@ -1,14 +1,21 @@
 const { AwsCdkConstructLibrary } = require('projen');
 
+const { Automation } = require('projen-automate-it');
+
+const AUTOMATION_TOKEN = 'PROJEN_GITHUB_TOKEN';
+
 const project = new AwsCdkConstructLibrary({
   author: 'user',
   authorAddress: 'user@domain.com',
-  cdkVersion: '1.95.2',
+  cdkVersion: '1.100.0',
   defaultReleaseBranch: 'main',
-  jsiiFqn: "projen.AwsCdkConstructLibrary",
+  jsiiFqn: 'projen.AwsCdkConstructLibrary',
   name: 'projen-template-awscdk-construct',
-  repositoryUrl: 'git@github.com:kimisme9386/projen-template-awscdk-construct.git',
-
+  describe: '',
+  repositoryUrl: 'git@github.com:owner/repo.git',
+  cdkDependencies: ['@aws-cdk/core'],
+  devDeps: ['projen-automate-it'],
+  dependabot: false,
   /* AwsCdkConstructLibraryOptions */
   // cdkAssert: true,                                                                /* Install the @aws-cdk/assert library? */
   // cdkDependencies: undefined,                                                     /* Which AWS CDK modules (those that start with "@aws-cdk/") does this library require when consumed? */
@@ -114,5 +121,36 @@ const project = new AwsCdkConstructLibrary({
   // projectType: ProjectType.UNKNOWN,                                               /* Which type of project this is (library/app). */
   // readme: undefined,                                                              /* The README setup. */
 });
+
+project.eslint.addRules({
+  'comma-dangle': [
+    'error',
+    {
+      arrays: 'always-multiline',
+      objects: 'always-multiline',
+      imports: 'always-multiline',
+      exports: 'always-multiline',
+      functions: 'never',
+    },
+  ],
+});
+
+const automation = new Automation(project, {
+  automationToken: AUTOMATION_TOKEN,
+});
+
+automation.projenYarnUpgrade();
+automation.autoApprove();
+
+const common_exclude = [
+  'cdk.out',
+  'cdk.context.json',
+  'images',
+  'yarn-error.log',
+  'dependabot.yml',
+];
+
+project.npmignore.exclude(...common_exclude);
+project.gitignore.exclude(...common_exclude);
 
 project.synth();
